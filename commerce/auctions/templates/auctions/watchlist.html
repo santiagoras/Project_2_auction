@@ -1,0 +1,17 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+{% for listing in listings %}
+    <div class="listing-title">
+        <h2>{{ listing.title }}</h2>
+    </div>
+    <div class="listing-img">
+        <img src="{% url listing.image %}" alt="{% url listing.title %}">
+    </div>
+    <div class="listing-description">
+        <h4>{{ listing.descrption }}</h4>
+    </div>
+{% empty %}
+    <h2>You are not following any listings right now</h2>
+{% endfor %}
+{% endblock %}

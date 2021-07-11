@@ -7,9 +7,11 @@ class User(AbstractUser):
     pass
 
 class Listing(models.Model):
-    author=models.ForeignKey(User, on_delete=models.CASCADE)
-    iamge=models.CharField(max_length=256, blank=True)
-    watchers=models.ManyToManyField(User)
+    author=models.ForeignKey(User, on_delete=models.CASCADE, related_name="made")
+    description=models.TextField(max_length=500)
+    image=models.CharField(max_length=256, blank=True)
+    title=models.CharField(max_length=64)
+    watchers=models.ManyToManyField(User, related_name="following")
 
 class Bid(models.Model):
     amount= models.DecimalField(max_digits=15, decimal_places=2)
