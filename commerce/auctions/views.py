@@ -1,11 +1,21 @@
+from django import forms
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required
+from django.forms.forms import Form
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import Comment, Listing, User
+from .models import Comment, Bid, Listing, User
+
+class ListingForm(Form):
+    title=forms.CharField()
+    description=forms.CharField(widget=forms.Textarea)
+    image=forms.CharField()
+    bid_0=forms.DecimalField(max_digits=12, decimal_places=2)
+
+
 
 
 def index(request):
@@ -14,6 +24,30 @@ def index(request):
         "listings" : listings 
     })
 
+
+@login_required
+def create(request):
+    form=ListingForm()
+    if request.method == "POST":
+        form=ListingForm(request.POST)
+        if form.is_valid():
+            l = Listing(
+                author= User.objects.get(pk=request.user.id),
+                description= form.cleaned_data["description"],
+                image= form.cleaned_data["image"],
+                title= form.cleaned_data["title"]
+            )
+            l.save()
+            b = Bid(
+                amount= form.cleaned_data["bid_0"],
+                author= User.objects.get(pk=request.user.id),
+                listing= l
+            )
+            return HttpResponseRedirect(reverse("listing", args=(l.id, )))
+
+    return render(request, "auctions/create.html", {
+        "form" : form
+    })
 
 def listing(request, listing_id):
     if request.user.is_authenticated:
@@ -27,7 +61,10 @@ def listing(request, listing_id):
 
 @login_required
 def watchlist(request):
-    pass
+    listings = Listing.objects.filter(watchers=request.user)
+    return render(request, "auctions/watchlist.html", {
+        "listings" : listings
+    })
 
 
 

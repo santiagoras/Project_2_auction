@@ -11,7 +11,7 @@ class Listing(models.Model):
     description=models.TextField(max_length=500)
     image=models.CharField(max_length=256, blank=True)
     title=models.CharField(max_length=64)
-    watchers=models.ManyToManyField(User, related_name="following")
+    watchers=models.ManyToManyField(User, related_name="following", blank=True)
 
 class Bid(models.Model):
     amount= models.DecimalField(max_digits=15, decimal_places=2)
