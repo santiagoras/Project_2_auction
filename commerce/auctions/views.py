@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import Listing, User
+from .models import Comment, Listing, User
 
 
 def index(request):
@@ -18,8 +18,10 @@ def index(request):
 def listing(request, listing_id):
     if request.user.is_authenticated:
         listing = Listing.objects.get(pk=listing_id)
+        comments = Comment.objects.filter(listing=listing_id)
         return render(request, "auctions/listing.html", {
-            "listing" : listing
+            "listing" : listing,
+            "comments" : comments
         })
 
 

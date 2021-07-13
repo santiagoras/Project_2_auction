@@ -5,9 +5,22 @@
     <h1>{{ listing.title }}</h1>
 </div>
 <div>
-    <img src="{% url listing.image %}" alt={{ listing.title }}>
+    <img src="{{ listing.image }}" alt="{{ listing.title }}">
 </div>
 <div class="description">
     <h3>{{listing.description}}</h3>
 </div>
+
+<h3>comments</h3>
+
+{% for comment in comments %}
+<div>
+    <p>----------------------</p>
+    <h5>{{comment.author}} says:</h5>
+    <p>{{comment.content}}</p>
+    <p>{{comment.date}}</p>
+</div>
+{% empty %}
+    <h6>There are no comments for this Listing yet</h6>
+{% endfor %}
 {% endblock %}
