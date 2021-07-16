@@ -1,0 +1,9 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<h1>Succes!</h1>
+<p>You succesfuly bid for the amount of ${{bid.amount}} for the {{bid.listing.title}}</p>
+<p>
+    <a href="{% url 'index' %}">Return to index</a> or <a href="{% url 'watchlist' %}">Go to your watchlist!</a>
+</p>
+{% endblock %}

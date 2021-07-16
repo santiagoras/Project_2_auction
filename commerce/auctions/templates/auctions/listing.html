@@ -3,15 +3,31 @@
 {% block body %}
 <div>
     <h1>{{ listing.title }}</h1>
+    <h3>Highest offer: {{ h_bid }}</h3>
 </div>
 <div>
     <img src="{{ listing.image }}" alt="{{ listing.title }}">
 </div>
+
 <div class="description">
-    <h3>{{listing.description}}</h3>
+    <p>{{listing.description}}</p>
 </div>
 
+<form action="{% url 'bid' %}" method="POST">
+    {% csrf_token %}
+    {{ b_form }}
+    <input type="hidden" value={{listing.id}} name="listing">
+    <input type="submit">
+</form>
+
 <h3>comments</h3>
+
+<h4>Write your comment</h4>
+<form action="{% url 'listing' listing.id %}" method="POST">
+    {% csrf_token %}
+    {{ c_form }}
+    <input type="submit">
+</form>
 
 {% for comment in comments %}
 <div>
