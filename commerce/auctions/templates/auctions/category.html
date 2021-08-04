@@ -1,6 +1,9 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+
+<h1> Listings for category {{ category }}:<h1>
+
 {% for listing in listings %}
     <div class="listing-title">
         <h2><a href="{% url 'listing' listing.id %}">{{ listing.title }}</a></h2>
@@ -9,10 +12,10 @@
         <img src="{{ listing.image }}" alt="{{ listing.title }}">
     </div>
     <div class="listing-description">
-        <h3>Biggest bid: ${{listing.bid.last.amount}}</h3>
+        <h3>Biggest bid: ${{listing.bid.amount}}</h3>
         <h4>{{ listing.descrption }}</h4>
     </div>
 {% empty %}
-    <h2>You are not following any listings right now</h2>
+    <h2>There are no Listings for this category right now</h2>
 {% endfor %}
 {% endblock %}

@@ -1,10 +1,33 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+    <h6>Categories</h6>
+    <table>
+        <tr>
+            {% for category in categories %}
+                <td>
+                    <a href="{% url 'category' category.name %}">{{category.name}}</a>
+                </td>
+            {% empty %}
+                <p>No categories registered yet</p>
+            {% endfor %}
+        </tr>
+        
+            
+    </table>
     <h2>Active Listings</h2>
 
     {% for listing in listings %}
-        <h1><a href="{% url 'listing' listing.id %}">{{listing.title}}</a></h1>
-    {% empty %}
+        <div class="listing-title">
+            <h2><a href="{% url 'listing' listing.id %}">{{ listing.title }}</a></h2>
+        </div>
+        <div class="listing-img">
+            <img src="{{ listing.image }}" alt="{{ listing.title }}">
+        </div>
+        <div class="listing-description">
+            <h3>Biggest bid: ${{listing.bid.last.amount}}</h3>
+            <h4>{{ listing.descrption }}</h4>
+        </div>
+
     {% endfor %}
 {% endblock %}

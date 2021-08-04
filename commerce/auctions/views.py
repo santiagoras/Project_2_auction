@@ -8,7 +8,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import Comment, Bid, Listing, User
+from .models import Category, Comment, Bid, Listing, User
 
 #Forms models
 
@@ -22,15 +22,18 @@ class ListingForm(Form):
     title=forms.CharField()
     description=forms.CharField(widget=forms.Textarea)
     image=forms.CharField()
-    bid_0=forms.DecimalField(max_digits=12, decimal_places=2)
+    category=forms.CharField()
+    bid_0=forms.DecimalField(max_digits=12, decimal_places=2, label="Initial bid")
 
 
 
 
 def index(request):
     listings = Listing.objects.all()
+    categories = Category.objects.all()
     return render(request, "auctions/index.html", {
-        "listings" : listings 
+        "listings" : listings,
+        "categories" : categories 
     })
 
 
@@ -38,21 +41,36 @@ def index(request):
 def bid(request):
     if request.method == 'POST':
         b_form = BidForm(request.POST)
-        # Can we make a lambda in render arguments?, lets try it later
-        if b_form.is_valid():
+        # Can we make a lambda in render arguments?, lets try it 
+        print(request.POST['o_bid'])
+        if b_form.is_valid() and b_form.cleaned_data['amount'] > float(request.POST['o_bid']):
+            listing = Listing.objects.get(pk=request.POST["listing"])
             b = Bid(
                 amount=b_form.cleaned_data["amount"],
                 author=request.user,
-                listing= Listing.objects.get(pk=request.POST["listing"])
+                listing= listing
             )
             b.save()
+            listing.watchers.add(request.user)
             return render(request, "auctions/bid.html", {
                 "bid" : b
             })
         else:
-            return HttpResponseRedirect(reverse("listing", args=(request.POST.listing, )))
+            return render(request, "auctions/bid.html", {
+                "message" : "Oops! Your bid needs to be higher than the previous one."
+            })
 
     return HttpResponseRedirect(reverse("index"))    
+
+
+# Here we show all listings corresponding to a specific category
+def category(request, category):
+    c = Category.objects.get(name=category)
+    listings=Listing.objects.filter(categories=c)
+    return render(request, "auctions/category.html", {
+        "listings" : listings
+    })
+
 
 
 @login_required
@@ -69,7 +87,17 @@ def create(request):
                 title = form.cleaned_data["title"]
             )
             l.save()
-            
+
+            #Saving category. Maybe try to apply regex to add more than 1?
+            try:
+                Category.objects.get(name=form.cleaned_data["category"]).listings.add(l)
+            except:
+                c = Category(
+                    name = form.cleaned_data["category"]
+                )
+                c.save()
+                c.listings.add(l)
+
             # Initializing Bid "floor".
             b = Bid(
                 amount= form.cleaned_data["bid_0"],
@@ -89,7 +117,7 @@ def create(request):
     })
 
 
-def listing(request, listing_id):
+def listing(request, listing_id, message=False):
         b_form = BidForm()
         c_form = CommentForm()
         listing = Listing.objects.get(pk=listing_id)
@@ -110,7 +138,9 @@ def listing(request, listing_id):
                 return render(request, "auctions/listing.html", {
                     "listing" : listing,
                     "comments" : comments,
-                    "c_form" : c_form
+                    "c_form" : c_form,
+                    "bid" : listing.bid.last().amount,
+                    "message":message
                 })
 
 
@@ -118,12 +148,22 @@ def listing(request, listing_id):
             "listing" : listing,
             "comments" : comments,
             "c_form" : c_form,
-            "b_form" : b_form 
+            "b_form" : b_form,
+            "bid" : listing.bid.last().amount 
         })
 
 
 @login_required
 def watchlist(request):
+    if request.method == 'POST':
+        form=request.POST
+        if form:
+            l = Listing.objects.get(pk=form["listing"])
+            if l in request.user.following.all():
+                request.user.following.remove(l)
+            else:
+                request.user.following.add(l)
+        return HttpResponseRedirect(reverse("listing", args=(l.id,)))
     #shows all listings for current user
     listings = Listing.objects.filter(watchers=request.user)
     return render(request, "auctions/watchlist.html", {

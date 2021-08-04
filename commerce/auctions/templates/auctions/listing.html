@@ -1,9 +1,30 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+
+{% if message %}
+    <div>
+        <h5>{{ message }}</h5>
+    </div>
+{% endif %}
 <div>
+    
+        <form action="{% url 'watchlist' %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" value="{{listing.id}}" name="listing">
+            {% if listing in request.user.following.all %}
+            <input type="submit" value="Remove from watchlist">
+            {% else %}
+            <input type="submit" value="Add to watchlist">
+            {% endif %}
+
+        </form>
+    
     <h1>{{ listing.title }}</h1>
-    <h3>Highest offer: {{ h_bid }}</h3>
+    <h3>Highest offer: ${{ bid }}</h3>
+    {% if request.user == listing.author %}
+        <button>Close listing</button>
+    {% endif %}
 </div>
 <div>
     <img src="{{ listing.image }}" alt="{{ listing.title }}">
@@ -13,12 +34,20 @@
     <p>{{listing.description}}</p>
 </div>
 
-<form action="{% url 'bid' %}" method="POST">
-    {% csrf_token %}
-    {{ b_form }}
-    <input type="hidden" value={{listing.id}} name="listing">
-    <input type="submit">
-</form>
+{% if listing.winner.first %}
+    <p>Listing is closed!</p>
+    {% if request.user == listing.winner.winner %}
+        <p>Congrats! you won the listing!</p>
+    {% endif %}
+{% else %}    
+    <form action="{% url 'bid' %}" method="POST">
+        {% csrf_token %}
+        {{ b_form }}
+        <input type="hidden" value={{listing.id}} name="listing">
+        <input type="hidden" value={{listing.bid.last.amount}} name="o_bid">
+        <input type="submit">
+    </form>
+{% endif %}
 
 <h3>comments</h3>
 
